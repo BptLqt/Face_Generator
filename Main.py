@@ -65,7 +65,7 @@ initializer = tf.contrib.layers.variance_scaling_initializer()
 my_dense_layer = partial(
 tf.layers.dense,
 activation = tf.nn.elu,
-kernel_initializer=initializer)
+kernel_initializer=initializer) # partial, is use to make the code more easy to read
 
 X = tf.placeholder(tf.float32,[None,n_inputs])
 hidden1 = my_dense_layer(X,n_hidden1)
@@ -81,14 +81,13 @@ hidden5 = my_dense_layer(hidden4,n_hidden5)
 logits = my_dense_layer(hidden5,n_outputs,activation=None)
 outputs = tf.nn.sigmoid(logits) # as we use sigmoid, all the values of the pixels must be 0=<value=<1, so in the preprocessing part, we divided by 255 each values
 
-entropie = tf.nn.sigmoid_cross_entropy_with_logits(labels=X,logits=logits)
-perte_r = tf.reduce_sum(entropie)
-perte_l = 0.5*tf.reduce_sum(tf.exp(hidden3_gamma) + tf.square(hidden3_mean)-1-hidden3_gamma)
-loss = perte_r + perte_l
+entropie = tf.nn.sigmoid_cross_entropy_with_logits(labels=X,logits=logits) # cross entropy
+perte_r = tf.reduce_sum(entropie) # reconstruction
+perte_l = 0.5*tf.reduce_sum(tf.exp(hidden3_gamma) + tf.square(hidden3_mean)-1-hidden3_gamma) # latent
+loss = perte_r + perte_l # total loss
 
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-#optimizer.minimize(loss)
-init = tf.global_variables_initializer()
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate) # Adam optimizer
+init = tf.global_variables_initializer() # He initialization
 
 # Entrainement de l'auto-encodeur
 nb_gen = 60
@@ -106,3 +105,4 @@ with tf.Session() as sess:
     noise_bis = np.random.normal(size=[n_digits,n_hidden3]) # Noise creation
     generations = outputs.eval(feed_dict={hidden3: codings_rnd}) # Transformation of the noise into images, by processing the noise throught
     layers (>3) of the network.
+# With 200 epochs the result of quite impressive, but more epochs implicate better results
